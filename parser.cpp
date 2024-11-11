@@ -1,6 +1,7 @@
 #include "parser.hpp"
 #include "tools.hpp"
 
+#include <algorithm>
 #include <cctype>
 #include <filesystem>
 #include <fstream>
@@ -161,6 +162,19 @@ const bool TurboINI::parser::exists(const std::string &key) const
     }
 
     return false;
+}
+
+const std::string &TurboINI::parser::get(const std::string &key) const
+{
+    std::unique_ptr<std::string *> output;
+
+    for (auto &i : TurboINI::data::strings)
+    {
+        if (i.key == key)
+            output = std::make_unique<std::string *>(&i.value);
+    }
+
+    return **output;
 }
 
 void TurboINI::parser::close() const
