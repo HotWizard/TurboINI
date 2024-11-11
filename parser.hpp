@@ -11,9 +11,8 @@ namespace TurboINI
     {
       public:
         parser() = default;
-        parser(const std::string &path);
 
-        bool open(const std::string &path) const;
+        const bool open(const std::string &path) const, exists(const std::string &key) const;
 
         void close() const;
     };
