@@ -1,6 +1,13 @@
 # TurboINI
 ### Примечания
 - Версия C++ >= 17, рекомендуется 20.
+### Пример простого ".ini" файла
+```ini
+"string" = "value"
+
+["namespace"]
+"string" = "value"
+```
 ### Пример простой программы
 ```cpp
 #include "TurboINI.hpp"
@@ -25,6 +32,9 @@ int main(void)
         for (size_t i = 0; i < 1000000; i++)
             parser.get("string");
     }
+
+    if (parser.NamespaceExists("namespace") && parser.ExistsInNamespace("namespace", "string"))
+        cout << parser.GetFromNamespace("namespace", "string") << endl;
 
     chrono::duration<double> stop{chrono::steady_clock::now() - start};
 
