@@ -21,6 +21,9 @@ int main(void)
             parser.get("string");
     }
 
+    if (parser.NamespaceExists("namespace") && parser.ExistsInNamespace("namespace", "string"))
+        cout << parser.GetFromNamespace("namespace", "string") << endl;
+
     chrono::duration<double> stop{chrono::steady_clock::now() - start};
 
     cout << stop << endl;

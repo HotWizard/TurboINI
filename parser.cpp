@@ -5,6 +5,7 @@
 #include <cctype>
 #include <filesystem>
 #include <fstream>
+#include <memory>
 #include <vector>
 
 namespace TurboINI
@@ -27,7 +28,7 @@ namespace TurboINI
     } // namespace data
 } // namespace TurboINI
 
-inline bool IsString(std::string raw)
+inline const bool IsString(std::string raw)
 {
     using namespace TurboINI::tools::string;
 
@@ -57,6 +58,21 @@ inline bool IsString(std::string raw)
         return false;
 
     if (raw.back() != '"')
+        return false;
+
+    return true;
+}
+
+inline const bool IsNamespace(std::string raw)
+{
+    raw = TurboINI::tools::string::TrimWhitespaces(raw);
+
+    if (raw.size() > 4)
+    {
+        if (raw[0] != '[' || raw[1] != '"' || raw[raw.size() - 2] != '"' || raw.back() != ']')
+            return false;
+    }
+    else if (raw.size() < 5)
         return false;
 
     return true;
@@ -111,16 +127,63 @@ inline const std::string GetStringValue(const std::string &str)
     return output;
 }
 
+inline const std::string GetNamespaceName(const std::string &raw)
+{
+    std::string output;
+
+    bool a;
+
+    for (const char &i : raw)
+    {
+        if (i == '"' && a)
+            break;
+        if (a)
+            output += i;
+        if (i == '"' && !a)
+        {
+            a = true;
+            continue;
+        }
+    }
+
+    return output;
+}
+
 inline void ProcessRawData(const std::string &raw)
 {
     std::string temp;
+
+    bool NamespaceDetected;
 
     for (const char &i : raw)
     {
         temp += i;
 
-        if (IsString(temp))
-            TurboINI::data::strings.push_back({GetStringName(temp), GetStringValue(temp)});
+        if (!NamespaceDetected)
+        {
+            if (IsString(temp))
+            {
+                TurboINI::data::strings.push_back({GetStringName(temp), GetStringValue(temp)});
+                temp.clear();
+            }
+        }
+        else
+        {
+            if (IsString(temp))
+            {
+                TurboINI::data::namespaces.back().strings.push_back({GetStringName(temp), GetStringValue(temp)});
+                temp.clear();
+            }
+        }
+
+        if (IsNamespace(temp))
+        {
+            TurboINI::data::namespaces.push_back({GetNamespaceName(temp)});
+
+            NamespaceDetected = true;
+
+            temp.clear();
+        }
     }
 }
 
@@ -164,6 +227,34 @@ const bool TurboINI::parser::exists(const std::string &key) const
     return false;
 }
 
+const bool TurboINI::parser::NamespaceExists(const std::string &key) const
+{
+    for (const auto &i : TurboINI::data::namespaces)
+    {
+        if (i.key == key)
+            return true;
+    }
+
+    return false;
+}
+
+const bool TurboINI::parser::ExistsInNamespace(const std::string &NamespaceKey, const std::string &key) const
+{
+    for (const auto &i : TurboINI::data::namespaces)
+    {
+        if (i.key == NamespaceKey)
+        {
+            for (const auto &j : i.strings)
+            {
+                if (j.key == key)
+                    return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 const std::string &TurboINI::parser::get(const std::string &key) const
 {
     std::unique_ptr<std::string *> output;
@@ -177,6 +268,27 @@ const std::string &TurboINI::parser::get(const std::string &key) const
     return **output;
 }
 
+const std::string &TurboINI::parser::GetFromNamespace(const std::string &NamespaceKey, const std::string &key) const
+{
+    std::unique_ptr<std::string *> output;
+
+    for (auto &i : TurboINI::data::namespaces)
+    {
+        if (i.key == NamespaceKey)
+        {
+            for (auto &j : i.strings)
+            {
+                if (j.key == key)
+                    output = std::make_unique<std::string *>(&j.value);
+            }
+        }
+    }
+
+    return **output;
+}
+
 void TurboINI::parser::close() const
 {
+    TurboINI::data::strings.clear();
+    TurboINI::data::namespaces.clear();
 }
