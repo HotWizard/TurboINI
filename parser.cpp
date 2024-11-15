@@ -1,7 +1,6 @@
 #include "parser.hpp"
 #include "tools.hpp"
 
-#include <algorithm>
 #include <cctype>
 #include <filesystem>
 #include <fstream>
@@ -28,42 +27,51 @@ namespace TurboINI
     } // namespace data
 } // namespace TurboINI
 
-inline const bool IsString(std::string raw)
+const inline bool IsDataType(std::string raw)
 {
-    using namespace TurboINI::tools::string;
+    raw = TurboINI::tools::string::TrimWhitespaces(raw);
 
-    raw = TrimWhitespaces(raw);
-
-    if (CountCharacters('"', raw) != 4 || CountCharacters('=', raw) < 1)
+    if (TurboINI::tools::string::CountCharacters('"', raw) < 2 ||
+        TurboINI::tools::string::CountCharacters('=', raw) == 0 || raw[0] != '"')
         return false;
 
-    decltype(raw.size()) indexes[2];
-    short CurrentIndexID = 0;
-
-    for (decltype(raw.size()) i = 0; i < raw.size(); i++)
+    for (decltype(raw.size()) i = 1; i < raw.size(); i++)
     {
         if (raw[i] == '"')
         {
-            indexes[CurrentIndexID] = i;
-            CurrentIndexID++;
-        }
-        if (CurrentIndexID == 2)
+            if (i + 1 == raw.size() || raw[i + 1] != '=')
+                return false;
             break;
+        }
     }
-
-    if (raw[indexes[1] + 1] != '=')
-        return false;
-
-    if (raw[indexes[1] + 2] != '"')
-        return false;
-
-    if (raw.back() != '"')
-        return false;
 
     return true;
 }
 
-inline const bool IsNamespace(std::string raw)
+const inline bool IsString(std::string raw)
+{
+    if (!IsDataType(raw) || TurboINI::tools::string::CountCharacters('"', raw) != 4)
+        return false;
+
+    raw = TurboINI::tools::string::TrimWhitespaces(raw);
+
+    if (raw.back() != '"')
+        return false;
+
+    for (decltype(raw.size()) i = 1; i < raw.size(); i++)
+    {
+        if (raw[i] == '=')
+        {
+            if (i + 1 > raw.size() || raw[i + 1] != '"')
+                return false;
+            break;
+        }
+    }
+
+    return true;
+}
+
+const inline bool IsNamespace(std::string raw)
 {
     raw = TurboINI::tools::string::TrimWhitespaces(raw);
 
@@ -78,7 +86,7 @@ inline const bool IsNamespace(std::string raw)
     return true;
 }
 
-inline const std::string GetStringName(const std::string &str)
+const inline std::string GetStringName(const std::string &str)
 {
     std::string output;
 
@@ -100,34 +108,48 @@ inline const std::string GetStringName(const std::string &str)
     return output;
 }
 
-inline const std::string GetStringValue(const std::string &str)
+const inline std::string GetStringValue(const std::string &str)
 {
     std::string output;
 
-    bool n, j;
+    bool a, b, n;
 
-    for (const char &i : str)
+    for (const char &c : str)
     {
-        if (i == '"' && n && j)
-            break;
-        if (i == '"' && n && !j)
+        if (!n)
         {
-            j = true;
-            continue;
+            if (c == '"')
+            {
+                if (!a)
+                    a = true;
+                else
+                    b = true;
+            }
+            if (b && c == '=')
+            {
+                n = true;
+                a = false;
+                b = false;
+            }
         }
-        if (i == '=' && !n && !j)
+        else
         {
-            n = true;
-            continue;
+            if (a && c == '"')
+                break;
+            if (c == '"')
+            {
+                a = true;
+                continue;
+            }
+            if (a)
+                output += c;
         }
-        if (j)
-            output += i;
     }
 
     return output;
 }
 
-inline const std::string GetNamespaceName(const std::string &raw)
+const inline std::string GetNamespaceName(const std::string &raw)
 {
     std::string output;
 
