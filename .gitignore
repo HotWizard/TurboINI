@@ -1,0 +1,5 @@
+build/
+.xmake/
+main.cpp
+test.ini
+a.out
