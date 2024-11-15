@@ -1,0 +1,11 @@
+name: Building project with xmake
+run-name: ${{ github.actor }} is building project 🚀
+on: [push]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setting up xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+      - name: Building project
+        run: xmake
