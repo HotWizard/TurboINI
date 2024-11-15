@@ -1,4 +1,5 @@
+.xmake/
+build/
 a.out
 test.ini
 main.cpp
-build/
