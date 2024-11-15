@@ -1,0 +1,62 @@
+{
+    find_program = {
+        zig = false,
+        gcc = "/usr/bin/gcc",
+        nim = false,
+        ["/usr/bin/gcc"] = "/usr/bin/gcc"
+    },
+    find_programver = {
+        ["/usr/bin/gcc"] = "12.2.0-14"
+    },
+    ["detect.tools.gcc.has_cflags"] = {
+        ["/usr/bin/gcc_12.2.0-14"] = {
+            ["-Xassembler"] = true,
+            ["-print-multi-os-directory"] = true,
+            ["-print-search-dirs"] = true,
+            ["-print-sysroot"] = true,
+            ["-pass-exit-codes"] = true,
+            ["-print-sysroot-headers-suffix"] = true,
+            ["-shared"] = true,
+            ["-pie"] = true,
+            ["-S"] = true,
+            ["--version"] = true,
+            ["-time"] = true,
+            ["-print-multiarch"] = true,
+            ["-c"] = true,
+            ["-print-libgcc-file-name"] = true,
+            ["-Xlinker"] = true,
+            ["-dumpmachine"] = true,
+            ["--help"] = true,
+            ["-save-temps"] = true,
+            ["-v"] = true,
+            ["-print-multi-lib"] = true,
+            ["-x"] = true,
+            ["--target-help"] = true,
+            ["-print-multi-directory"] = true,
+            ["-dumpspecs"] = true,
+            ["-no-canonical-prefixes"] = true,
+            ["-dumpversion"] = true,
+            ["-Xpreprocessor"] = true,
+            ["-pipe"] = true,
+            ["--param"] = true,
+            ["-o"] = true,
+            ["-E"] = true,
+            ["-B"] = true
+        }
+    },
+    find_program_gcc_arch_x86_64_plat_linux_checktoolcxx = {
+        gcc = "/usr/bin/gcc"
+    },
+    find_program_gcc_arch_x86_64_plat_linux_checktoolar = {
+        ar = "/usr/bin/ar"
+    },
+    ["lib.detect.has_flags"] = {
+        ["linux_x86_64_/usr/bin/gcc_12.2.0-14_cxx_cxflags_-m64_-fvisibility-inlines-hidden"] = true,
+        ["linux_x86_64_/usr/bin/gcc_12.2.0-14_cxx_cxflags_-m64_-fdiagnostics-color=always"] = true,
+        ["linux_x86_64_/usr/bin/gcc_12.2.0-14_cxx__-m64_-fPIC"] = true,
+        ["linux_x86_64_/usr/bin/gcc_12.2.0-14_cxx_cxflags_-m64_-MMD -MF"] = true,
+        ["linux_x86_64_/usr/bin/gcc_12.2.0-14_cxx__-m64_-O3"] = true,
+        ["linux_x86_64_/usr/bin/gcc_12.2.0-14_cxx_cxflags_-m64_-std=c++23"] = true,
+        ["linux_x86_64_/usr/bin/gcc_12.2.0-14_cxx_cxflags_-m64_-DNDEBUG"] = true
+    }
+}
