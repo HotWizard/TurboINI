@@ -40,7 +40,7 @@ namespace TurboINI
     } // namespace data
     namespace ParserSettings
     {
-        bool refresh;
+        bool refresh = false;
         double RefreshRate = 0.5;
         std::chrono::time_point<std::chrono::steady_clock> RefreshTimePoint;
     } // namespace ParserSettings
@@ -299,11 +299,11 @@ inline void ProcessRawData(const std::string &raw)
 
 inline void parse(const std::string &path)
 {
-    std::ifstream is(path);
+    std::unique_ptr<std::ifstream> is = std::make_unique<std::ifstream>(path);
 
     std::string temp_line, raw;
 
-    while (std::getline(is, temp_line))
+    while (std::getline(*is, temp_line))
     {
         if (std::isspace(temp_line.back()))
             temp_line.pop_back();
@@ -312,7 +312,7 @@ inline void parse(const std::string &path)
     }
 
     auto a = std::make_unique<std::thread>([&](void) { temp_line.clear(); }),
-         b = std::make_unique<std::thread>([&](void) { is.close(); });
+         b = std::make_unique<std::thread>([&](void) { (*is).close(); });
     a->join();
     b->join();
 
@@ -507,5 +507,5 @@ void TurboINI::parser::EnableRefreshing(const bool &status) const
 
 void TurboINI::parser::SetRefreshRate(const double &milliseconds) const
 {
-    parse(TurboINI::data::path);
+    TurboINI::ParserSettings::RefreshRate = milliseconds;
 }

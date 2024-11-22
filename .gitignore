@@ -1,6 +1,7 @@
 build/
 .xmake/
 test/
+main.cpp
 maiin.cpp
 test.ini
 a.out
