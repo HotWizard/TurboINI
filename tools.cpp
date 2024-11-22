@@ -15,8 +15,7 @@ const std::string TurboINI::tools::string::TrimWhitespaces(const std::string &st
     return output;
 }
 
-const decltype(std::string().size()) TurboINI::tools::string::CountCharacters(const char &_char,
-                                                                                     const std::string &str)
+const decltype(std::string().size()) TurboINI::tools::string::CountCharacters(const char &_char, const std::string &str)
 {
     decltype(std::string().size()) output = 0;
 

@@ -2,42 +2,67 @@
 # TurboINI
 ### Примечания
 - Версия C++ >= 17, рекомендуется 20.
-### Пример простого ".ini" файла
+### Пример "test.ini" INI файла
 ```ini
-"string" = "value"
+"integer"=1
+"string"="string"
 
 ["namespace"]
-"string" = "value"
+"integer"=1
+"string"="1"
 ```
-### Пример простой программы
+### Пример кода C++
 ```cpp
+// main.cpp
 #include "TurboINI.hpp"
 
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 
 using namespace std;
 
-int main(void)
+unique_ptr<TurboINI::parser> parser;
+
+const inline void init(const std::string &path)
 {
-    TurboINI::parser parser;
+    parser = make_unique<TurboINI::parser>();
 
-    if (!parser.open("test.ini"))
-        return EXIT_FAILURE;
+    parser->EnableRefreshing(true);
 
-    if (parser.exists("string"))
+    if (!parser->open(path))
+        exit(EXIT_FAILURE);
+}
+
+int main(int argc, char **argv)
+{
+    if (argc == 2)
     {
-        for (size_t i = 0; i < 1000000; i++)
-            parser.get("string");
-    }
+        init(argv[1]);
 
-    if (parser.NamespaceExists("namespace") && parser.ExistsInNamespace("namespace", "string"))
-        cout << parser.GetFromNamespace("namespace", "string") << endl;
+        if (parser->exists(TurboINI::types::INTEGER, "integer"))
+            cout << parser->GetInteger("integer") << endl;
+        if (parser->exists(TurboINI::types::STRING, "string"))
+            cout << parser->get("string") << endl;
+        if (parser->NamespaceExists("namespace"))
+        {
+            if (parser->ExistsInNamespace(TurboINI::types::INTEGER, "namespace", "integer"))
+                cout << parser->GetIntegerFromNamespace("namespace", "integer") << endl;
+            if (parser->ExistsInNamespace(TurboINI::types::STRING, "namespace", "string"))
+                cout << parser->GetFromNamespace("namespace", "string") << endl;
+        }
+    }
 
     return EXIT_SUCCESS;
 }
+```
+### Пример команды компиляции и запуска тестовой программы с помощью GCC на Unix
+```shell
+g++ -std=c++17 -Wall -Werror -Wpedantic -pedantic-errors -g tools.cpp parser.cpp main.cpp && ./a.out test.ini
 ```
 ### ToDo
 - [x] Добавить возможность чтения значения строки.
 - [x] Добавить возможность чтения пространств имён.
 - [ ] Добавить возможность чтения массивов.
+- [x] Добавить возможность чтения целых чисел.
+- [ ] Добавить возможность чтения вещественных чисел.

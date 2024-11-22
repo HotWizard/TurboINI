@@ -2,15 +2,26 @@
 #include "tools.hpp"
 
 #include <cctype>
+#include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <thread>
 #include <vector>
 
 namespace TurboINI
 {
     namespace data
     {
+        std::string path;
+
+        struct integer
+        {
+            std::string key;
+            long long value;
+        };
+
         struct _string
         {
             std::string key, value;
@@ -19,12 +30,20 @@ namespace TurboINI
         struct _namespace
         {
             std::string key;
+            std::vector<integer> integers;
             std::vector<_string> strings;
         };
 
+        std::vector<integer> integers;
         std::vector<_string> strings;
         std::vector<_namespace> namespaces;
     } // namespace data
+    namespace ParserSettings
+    {
+        bool refresh;
+        double RefreshRate = 0.5;
+        std::chrono::time_point<std::chrono::steady_clock> RefreshTimePoint;
+    } // namespace ParserSettings
 } // namespace TurboINI
 
 const inline bool IsDataType(std::string raw)
@@ -86,7 +105,49 @@ const inline bool IsNamespace(std::string raw)
     return true;
 }
 
-const inline std::string GetStringName(const std::string &str)
+const inline bool IsInteger(std::string raw)
+{
+    raw = TurboINI::tools::string::TrimWhitespaces(raw);
+
+    if (!IsDataType(raw))
+        return false;
+
+    if (TurboINI::tools::string::CountCharacters('"', raw) != 2)
+        return false;
+
+    std::string temp;
+
+    for (decltype(raw.size()) i = raw.size() - 1; i >= 0; i--)
+    {
+        if (raw[i] == '=')
+            break;
+
+        temp += raw[i];
+    }
+
+    if (temp.empty())
+        return false;
+
+    const char allowed[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+
+    for (decltype(temp.size()) i = 0; i < temp.size(); i++)
+    {
+        bool b;
+
+        for (const char &c : allowed)
+        {
+            if (temp[i] == c)
+                b = true;
+        }
+
+        if (!b)
+            return false;
+    }
+
+    return true;
+}
+
+const inline std::string GetName(const std::string &str)
 {
     std::string output;
 
@@ -106,6 +167,21 @@ const inline std::string GetStringName(const std::string &str)
     }
 
     return output;
+}
+
+const inline long long GetIntegerValue(const std::string &raw)
+{
+    std::string output;
+
+    for (decltype(raw.size()) i = raw.size() - 1; i >= 0; i--)
+    {
+        if (raw[i] == '=')
+            break;
+
+        output += raw[i];
+    }
+
+    return std::stoll(std::string(output.rbegin(), output.rend()));
 }
 
 const inline std::string GetStringValue(const std::string &str)
@@ -185,7 +261,12 @@ inline void ProcessRawData(const std::string &raw)
         {
             if (IsString(temp))
             {
-                TurboINI::data::strings.push_back({GetStringName(temp), GetStringValue(temp)});
+                TurboINI::data::strings.push_back({GetName(temp), GetStringValue(temp)});
+                temp.clear();
+            }
+            else if (IsInteger(temp))
+            {
+                TurboINI::data::integers.push_back({GetName(temp), GetIntegerValue(temp)});
                 temp.clear();
             }
         }
@@ -193,7 +274,12 @@ inline void ProcessRawData(const std::string &raw)
         {
             if (IsString(temp))
             {
-                TurboINI::data::namespaces.back().strings.push_back({GetStringName(temp), GetStringValue(temp)});
+                TurboINI::data::namespaces.back().strings.push_back({GetName(temp), GetStringValue(temp)});
+                temp.clear();
+            }
+            else if (IsInteger(temp))
+            {
+                TurboINI::data::namespaces.back().integers.push_back({GetName(temp), GetIntegerValue(temp)});
                 temp.clear();
             }
         }
@@ -207,6 +293,8 @@ inline void ProcessRawData(const std::string &raw)
             temp.clear();
         }
     }
+
+    temp.clear();
 }
 
 inline void parse(const std::string &path)
@@ -223,7 +311,36 @@ inline void parse(const std::string &path)
         raw += temp_line;
     }
 
+    auto a = std::make_unique<std::thread>([&](void) { temp_line.clear(); }),
+         b = std::make_unique<std::thread>([&](void) { is.close(); });
+    a->join();
+    b->join();
+
     ProcessRawData(raw);
+}
+
+inline void refresh(void)
+{
+    if (TurboINI::ParserSettings::refresh)
+    {
+        if (std::chrono::duration<double>(std::chrono::steady_clock::now() - TurboINI::ParserSettings::RefreshTimePoint)
+                .count() >= TurboINI::ParserSettings::RefreshRate)
+        {
+            TurboINI::ParserSettings::RefreshTimePoint = std::chrono::steady_clock::now();
+
+            parse(TurboINI::data::path);
+        }
+    }
+}
+
+TurboINI::parser::parser()
+{
+    ParserSettings::RefreshTimePoint = std::chrono::steady_clock::now();
+}
+
+TurboINI::parser::~parser()
+{
+    close();
 }
 
 const bool TurboINI::parser::open(const std::string &path) const
@@ -231,19 +348,32 @@ const bool TurboINI::parser::open(const std::string &path) const
     if (!std::filesystem::exists(path))
         return false;
 
-    parse(path);
+    TurboINI::data::path = path;
 
-    ProcessRawData(path);
+    parse(path);
 
     return true;
 }
 
-const bool TurboINI::parser::exists(const std::string &key) const
+const bool TurboINI::parser::exists(const types &type, const std::string &key) const
 {
-    for (const auto &i : TurboINI::data::strings)
+    refresh();
+
+    if (type == types::INTEGER)
     {
-        if (i.key == key)
-            return true;
+        for (const auto &i : TurboINI::data::integers)
+        {
+            if (i.key == key)
+                return true;
+        }
+    }
+    else if (type == types::STRING)
+    {
+        for (const auto &i : TurboINI::data::strings)
+        {
+            if (i.key == key)
+                return true;
+        }
     }
 
     return false;
@@ -251,6 +381,8 @@ const bool TurboINI::parser::exists(const std::string &key) const
 
 const bool TurboINI::parser::NamespaceExists(const std::string &key) const
 {
+    refresh();
+
     for (const auto &i : TurboINI::data::namespaces)
     {
         if (i.key == key)
@@ -260,16 +392,30 @@ const bool TurboINI::parser::NamespaceExists(const std::string &key) const
     return false;
 }
 
-const bool TurboINI::parser::ExistsInNamespace(const std::string &NamespaceKey, const std::string &key) const
+const bool TurboINI::parser::ExistsInNamespace(const types &type, const std::string &NamespaceKey,
+                                               const std::string &key) const
 {
+    refresh();
+
     for (const auto &i : TurboINI::data::namespaces)
     {
         if (i.key == NamespaceKey)
         {
-            for (const auto &j : i.strings)
+            if (type == types::INTEGER)
             {
-                if (j.key == key)
-                    return true;
+                for (const auto &j : i.integers)
+                {
+                    if (j.key == key)
+                        return true;
+                }
+            }
+            else if (type == types::STRING)
+            {
+                for (const auto &j : i.strings)
+                {
+                    if (j.key == key)
+                        return true;
+                }
             }
         }
     }
@@ -277,8 +423,23 @@ const bool TurboINI::parser::ExistsInNamespace(const std::string &NamespaceKey, 
     return false;
 }
 
+const long long &TurboINI::parser::GetInteger(const std::string &key)
+{
+    std::unique_ptr<long long *> output;
+
+    for (auto &i : data::integers)
+    {
+        if (i.key == key)
+            output = std::make_unique<long long *>(&i.value);
+    }
+
+    return **output;
+}
+
 const std::string &TurboINI::parser::get(const std::string &key) const
 {
+    refresh();
+
     std::unique_ptr<std::string *> output;
 
     for (auto &i : TurboINI::data::strings)
@@ -292,6 +453,8 @@ const std::string &TurboINI::parser::get(const std::string &key) const
 
 const std::string &TurboINI::parser::GetFromNamespace(const std::string &NamespaceKey, const std::string &key) const
 {
+    refresh();
+
     std::unique_ptr<std::string *> output;
 
     for (auto &i : TurboINI::data::namespaces)
@@ -309,8 +472,40 @@ const std::string &TurboINI::parser::GetFromNamespace(const std::string &Namespa
     return **output;
 }
 
-void TurboINI::parser::close() const
+void TurboINI::parser::close(void) const
 {
-    TurboINI::data::strings.clear();
-    TurboINI::data::namespaces.clear();
+    auto a = std::make_unique<std::thread>([&](void) { TurboINI::data::strings.clear(); }),
+         b = std::make_unique<std::thread>([&](void) { TurboINI::data::namespaces.clear(); });
+    a->join();
+    b->join();
+}
+
+const long long &TurboINI::parser::GetIntegerFromNamespace(const std::string &NamespaceKey,
+                                                           const std::string &key) const
+{
+    std::unique_ptr<long long *> output;
+
+    for (auto &i : TurboINI::data::namespaces)
+    {
+        if (i.key == NamespaceKey)
+        {
+            for (auto &j : i.integers)
+            {
+                if (j.key == key)
+                    output = std::make_unique<long long *>(&j.value);
+            }
+        }
+    }
+
+    return **output;
+}
+
+void TurboINI::parser::EnableRefreshing(const bool &status) const
+{
+    TurboINI::ParserSettings::refresh = status;
+}
+
+void TurboINI::parser::SetRefreshRate(const double &milliseconds) const
+{
+    parse(TurboINI::data::path);
 }
