@@ -1,7 +1,7 @@
 [![CodeQL Advanced](https://github.com/HotWizard/TurboINI/actions/workflows/codeql.yml/badge.svg)](https://github.com/HotWizard/TurboINI/actions/workflows/codeql.yml)
 # TurboINI
 ### Примечания
-- Версия C++ >= 17, рекомендуется 20.
+- Версия C++ >= 17.
 ### Пример "test.ini" INI файла
 ```ini
 "integer"=1
