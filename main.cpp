@@ -1,3 +1,4 @@
+// main.cpp
 #include "TurboINI.hpp"
 
 #include <cstdlib>
@@ -5,18 +6,33 @@
 
 using namespace std;
 
+TurboINI::parser parser;
+
+const inline void init(const std::string &path)
+{
+    if (!parser.open(path))
+        exit(EXIT_FAILURE);
+
+    parser.EnableRefreshing(true);
+}
+
 int main(int argc, char **argv)
 {
-    TurboINI::parser parser;
-
-    parser.open(argv[1]);
-    parser.EnableRefreshing(true);
-    parser.SetRefreshRate(0.5);
-
-    for (long long i = 0; i < 1000000; i++)
+    if (argc == 2)
     {
+        init(argv[1]);
+
         if (parser.exists(TurboINI::types::INTEGER, "integer"))
-            parser.GetInteger("integer");
+            cout << parser.GetInteger("integer") << endl;
+        if (parser.exists(TurboINI::types::STRING, "string"))
+            cout << parser.get("string") << endl;
+        if (parser.NamespaceExists("namespace"))
+        {
+            if (parser.ExistsInNamespace(TurboINI::types::INTEGER, "namespace", "integer"))
+                cout << parser.GetIntegerFromNamespace("namespace", "integer") << endl;
+            if (parser.ExistsInNamespace(TurboINI::types::STRING, "namespace", "string"))
+                cout << parser.GetFromNamespace("namespace", "string") << endl;
+        }
     }
 
     parser.close();
