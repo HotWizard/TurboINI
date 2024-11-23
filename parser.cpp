@@ -297,8 +297,30 @@ inline void ProcessRawData(const std::string &raw)
     temp.clear();
 }
 
+inline void ClearData(void)
+{
+    auto a = std::make_unique<std::thread>([&](void) {
+        if (!TurboINI::data::integers.empty())
+            TurboINI::data::integers.clear();
+    }),
+         b = std::make_unique<std::thread>([&](void) {
+             if (!TurboINI::data::strings.empty())
+                 TurboINI::data::strings.clear();
+         }),
+         c = std::make_unique<std::thread>([&](void) {
+             if (!TurboINI::data::namespaces.empty())
+                 TurboINI::data::namespaces.clear();
+         });
+
+    a->join();
+    b->join();
+    c->join();
+}
+
 inline void parse(const std::string &path)
 {
+    ClearData();
+
     std::unique_ptr<std::ifstream> is = std::make_unique<std::ifstream>(path);
 
     std::string temp_line, raw;
@@ -313,6 +335,7 @@ inline void parse(const std::string &path)
 
     auto a = std::make_unique<std::thread>([&](void) { temp_line.clear(); }),
          b = std::make_unique<std::thread>([&](void) { (*is).close(); });
+
     a->join();
     b->join();
 
@@ -327,7 +350,7 @@ inline void refresh(void)
                 .count() >= TurboINI::ParserSettings::RefreshRate)
         {
             TurboINI::ParserSettings::RefreshTimePoint = std::chrono::steady_clock::now();
-
+            
             parse(TurboINI::data::path);
         }
     }
@@ -425,6 +448,8 @@ const bool TurboINI::parser::ExistsInNamespace(const types &type, const std::str
 
 const long long &TurboINI::parser::GetInteger(const std::string &key)
 {
+    refresh();
+
     std::unique_ptr<long long *> output;
 
     for (auto &i : data::integers)
@@ -474,10 +499,7 @@ const std::string &TurboINI::parser::GetFromNamespace(const std::string &Namespa
 
 void TurboINI::parser::close(void) const
 {
-    auto a = std::make_unique<std::thread>([&](void) { TurboINI::data::strings.clear(); }),
-         b = std::make_unique<std::thread>([&](void) { TurboINI::data::namespaces.clear(); });
-    a->join();
-    b->join();
+    ClearData();
 }
 
 const long long &TurboINI::parser::GetIntegerFromNamespace(const std::string &NamespaceKey,
