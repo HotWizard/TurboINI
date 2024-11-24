@@ -1,24 +1,28 @@
 #include "TurboINI.hpp"
 
-#include <cstdlib>
 #include <iostream>
-
-using namespace std;
 
 int main(void)
 {
     TurboINI::parser parser;
-
-    parser.open("test.ini");
-    parser.EnableRefreshing(true);
+    TurboINI::data data({TurboINI::DataTypes::integer("integer", 1)}, {TurboINI::DataTypes::string("string", "value")},
+                        {TurboINI::DataTypes::_namespace("namespace", {TurboINI::DataTypes::integer("integer", 1)},
+                                                         {TurboINI::DataTypes::string("string", "value")})});
+    parser.SetData(data);
 
     if (parser.exists(TurboINI::types::INTEGER, "integer"))
-        cout << parser.GetInteger("integer") << endl;
+        std::cout << parser.GetInteger("integer") << std::endl;
 
-    for (int i = 0; i < 1000000; i++)
-        parser.GetInteger("integer");
+    if (parser.exists(TurboINI::types::STRING, "string"))
+        std::cout << parser.get("string") << std::endl;
 
-    parser.close();
+    if (parser.NamespaceExists("namespace"))
+    {
+        if (parser.ExistsInNamespace(TurboINI::types::INTEGER, "namespace", "integer"))
+            std::cout << parser.GetIntegerFromNamespace("namespace", "integer") << std::endl;
+        if (parser.ExistsInNamespace(TurboINI::types::STRING, "namespace", "string"))
+            std::cout << parser.GetFromNamespace("namespace", "string") << std::endl;
+    }
 
     return EXIT_SUCCESS;
 }
