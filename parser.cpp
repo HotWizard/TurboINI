@@ -231,9 +231,9 @@ inline void ProcessRawData(const std::string &raw)
 
     bool NamespaceDetected;
 
-    for (const char &i : raw)
+    for (decltype(raw.size()) i = 0; i < raw.size(); i++)
     {
-        temp += i;
+        temp += raw[i];
 
         if (!NamespaceDetected)
         {
@@ -246,10 +246,14 @@ inline void ProcessRawData(const std::string &raw)
             }
             else if (IsInteger(temp))
             {
-                TurboINI::INIData.GetIntegersVector().push_back(
-                    TurboINI::DataTypes::integer(GetName(temp), GetIntegerValue(temp)));
+                if (i == raw.size() - 1 || std::isspace(temp.back()) ||
+                    (i + 1 < raw.size() && (raw[i + 1] == '"' || raw[i + 1] == '[')))
+                {
+                    TurboINI::INIData.GetIntegersVector().push_back(
+                        TurboINI::DataTypes::integer(GetName(temp), GetIntegerValue(temp)));
 
-                temp.clear();
+                    temp.clear();
+                }
             }
         }
         else
@@ -331,6 +335,11 @@ inline void refresh(void)
 TurboINI::parser::parser()
 {
     ParserSettings::RefreshTimePoint = std::chrono::steady_clock::now();
+}
+
+TurboINI::parser::parser(const std::string &raw)
+{
+    ParseRaw(raw);
 }
 
 TurboINI::parser::~parser()
@@ -507,6 +516,11 @@ void TurboINI::parser::SetRefreshRate(const double &milliseconds) const
 void TurboINI::parser::SetData(const data &_data) const
 {
     INIData = _data;
+}
+
+void TurboINI::parser::ParseRaw(const std::string &raw) const
+{
+    ProcessRawData(raw);
 }
 
 const TurboINI::data &TurboINI::parser::GetData() const
