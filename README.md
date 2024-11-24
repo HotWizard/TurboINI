@@ -4,16 +4,35 @@
 - Версия C++ >= 17.
 ### Документация
 Документацию можете посмотреть в файле [DOCUMENTATION.md](DOCUMENTATION.md)
-### Пример "test.ini" INI файла
-```ini
-"integer"=1
-"string"="string"
+### Пример кода C++, не требующий \"INI\" файла
+```cpp
+#include "TurboINI.hpp"
 
-["namespace"]
-"integer"=1
-"string"="1"
+#include <cstdlib>
+#include <iostream>
+#include <memory>
+
+using TIT = TurboINI::types;
+
+inline std::unique_ptr<TurboINI::parser> parser;
+
+const inline void InitParser(const std::string &raw)
+{
+    parser = std::make_unique<TurboINI::parser>(raw);
+}
+
+int main(void)
+{
+    InitParser("\"integer\"=324");
+
+    if (parser->exists(TIT::INTEGER, "integer"))
+        std::cout << parser->GetInteger("integer") << std::endl;
+
+    return EXIT_SUCCESS;
+}
 ```
-### Пример кода C++
+---
+### Пример кода C++, но уже с использованием \"INI\" файла
 ```cpp
 // main.cpp
 #include "TurboINI.hpp"
@@ -56,6 +75,14 @@ int main(int argc, char **argv)
 
     return EXIT_SUCCESS;
 }
+```
+```ini
+"integer"=1
+"string"="string"
+
+["namespace"]
+"integer"=1
+"string"="1"
 ```
 ### Пример команды компиляции и запуска тестовой программы с помощью GCC на Unix
 ```shell
