@@ -125,6 +125,9 @@ TurboINI::DataTypes::_namespace::~_namespace()
 
 TurboINI::data::data()
 {
+    integers = std::make_shared<std::vector<DataTypes::integer>>();
+    strings = std::make_shared<std::vector<DataTypes::string>>();
+    namespaces = std::make_shared<std::vector<DataTypes::_namespace>>();
 }
 
 TurboINI::data::data(const std::vector<DataTypes::integer> &integers, const std::vector<DataTypes::string> &strings,
@@ -150,17 +153,24 @@ void TurboINI::data::SetNamespacesVector(const std::vector<DataTypes::_namespace
     this->namespaces = std::make_shared<std::vector<DataTypes::_namespace>>(namespaces);
 }
 
-std::vector<TurboINI::DataTypes::integer> &TurboINI::data::GetIntegersVector() const
+void TurboINI::data::clear()
+{
+    integers.reset();
+    strings.reset();
+    namespaces.reset();
+}
+
+std::vector<TurboINI::DataTypes::integer> &TurboINI::data::GetIntegersVector()
 {
     return *integers;
 }
 
-std::vector<TurboINI::DataTypes::string> &TurboINI::data::GetStringsVector() const
+std::vector<TurboINI::DataTypes::string> &TurboINI::data::GetStringsVector()
 {
     return *strings;
 }
 
-std::vector<TurboINI::DataTypes::_namespace> &TurboINI::data::GetNamespacesVector() const
+std::vector<TurboINI::DataTypes::_namespace> &TurboINI::data::GetNamespacesVector()
 {
     return *namespaces;
 }

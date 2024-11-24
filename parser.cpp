@@ -286,22 +286,7 @@ inline void ProcessRawData(const std::string &raw)
 
 inline void ClearData(void)
 {
-    auto a = std::make_unique<std::thread>([&](void) {
-        if (!TurboINI::INIData.GetIntegersVector().empty())
-            TurboINI::INIData.GetIntegersVector().clear();
-    }),
-         b = std::make_unique<std::thread>([&](void) {
-             if (!TurboINI::INIData.GetStringsVector().empty())
-                 TurboINI::INIData.GetStringsVector().clear();
-         }),
-         c = std::make_unique<std::thread>([&](void) {
-             if (!TurboINI::INIData.GetNamespacesVector().empty())
-                 TurboINI::INIData.GetNamespacesVector().clear();
-         });
-
-    a->join();
-    b->join();
-    c->join();
+    TurboINI::INIData.clear();
 }
 
 inline void parse(const std::string &path)

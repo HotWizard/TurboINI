@@ -85,11 +85,11 @@ namespace TurboINI
 
         void SetIntegersVector(const std::vector<DataTypes::integer> &integers),
             SetStringsVector(const std::vector<DataTypes::string> &strings),
-            SetNamespacesVector(const std::vector<DataTypes::_namespace> &namespaces);
+            SetNamespacesVector(const std::vector<DataTypes::_namespace> &namespaces), clear();
 
-        std::vector<DataTypes::integer> &GetIntegersVector() const;
-        std::vector<DataTypes::string> &GetStringsVector() const;
-        std::vector<DataTypes::_namespace> &GetNamespacesVector() const;
+        std::vector<DataTypes::integer> &GetIntegersVector();
+        std::vector<DataTypes::string> &GetStringsVector();
+        std::vector<DataTypes::_namespace> &GetNamespacesVector();
 
       private:
         std::shared_ptr<std::vector<DataTypes::integer>> integers;
