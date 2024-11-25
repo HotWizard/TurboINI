@@ -5,10 +5,7 @@
 - [xmake](https://xmake.io/#/)
 ### Построение и запуск тестовых программ
 ```shell
-# Построение
-xmake && xmake build TurboINITest0
-# Запуск тестовой программы tests/0.cpp
-xmake run TurboINITest0
+xmake && xmake run 0 && xmake run 1
 ```
 ### Документация
 Документацию можете посмотреть в файле [DOCUMENTATION.md](DOCUMENTATION.md)
