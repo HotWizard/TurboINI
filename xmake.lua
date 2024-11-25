@@ -12,7 +12,7 @@ end
 
 target("TurboINITest0")
 do
-    set_default(false)
+	set_default(false)
 	set_kind("binary")
 	add_linkdirs(TurboINIStaticLibraryPath)
 	add_links("TurboINI")
