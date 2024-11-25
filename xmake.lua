@@ -1,13 +1,18 @@
 set_languages("c++17")
 
+add_files("*.cpp")
+
 target("0")
 do
-	set_kind(binary)
-	add_files("*.cpp", "tests/0.cpp")
+	add_files("tests/0.cpp")
 end
 
 target("1")
 do
-	set_kind(binary)
-	add_files("*.cpp", "tests/1.cpp")
+	add_files("tests/1.cpp")
+end
+
+target("2")
+do
+	add_files("tests/2.cpp")
 end

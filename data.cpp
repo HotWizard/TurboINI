@@ -2,7 +2,7 @@
 
 #include <thread>
 
-TurboINI::DataTypes::DataType::DataType()
+TurboINI::DataTypes::DataType::DataType() : key(std::make_shared<std::string>())
 {
 }
 
@@ -28,7 +28,7 @@ const std::string &TurboINI::DataTypes::DataType::GetKey() const
     return *key;
 }
 
-TurboINI::DataTypes::integer::integer()
+TurboINI::DataTypes::integer::integer() : value(std::make_shared<long long>(0))
 {
 }
 
@@ -124,10 +124,10 @@ TurboINI::DataTypes::_namespace::~_namespace()
 }
 
 TurboINI::data::data()
+    : integers(std::make_shared<std::vector<DataTypes::integer>>()),
+      strings(std::make_shared<std::vector<DataTypes::string>>()),
+      namespaces(std::make_shared<std::vector<DataTypes::_namespace>>())
 {
-    integers = std::make_shared<std::vector<DataTypes::integer>>();
-    strings = std::make_shared<std::vector<DataTypes::string>>();
-    namespaces = std::make_shared<std::vector<DataTypes::_namespace>>();
 }
 
 TurboINI::data::data(const std::vector<DataTypes::integer> &integers, const std::vector<DataTypes::string> &strings,
@@ -155,9 +155,9 @@ void TurboINI::data::SetNamespacesVector(const std::vector<DataTypes::_namespace
 
 void TurboINI::data::clear()
 {
-    integers.reset();
-    strings.reset();
-    namespaces.reset();
+    integers->clear();
+    strings->clear();
+    namespaces->clear();
 }
 
 std::vector<TurboINI::DataTypes::integer> &TurboINI::data::GetIntegersVector()

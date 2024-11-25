@@ -24,7 +24,7 @@ namespace TurboINI
 
         const bool open(const std::string &path) const, exists(const types &type, const std::string &key) const,
             NamespaceExists(const std::string &key) const,
-            ExistsInNamespace(const types &type, const std::string &NamespaceKey, const std::string &key) const;
+            ExistsInNamespace(const types &type, const std::string &NamespaceKey, const std::string &key) const, &IsOpen() const;
 
         const long long &GetInteger(const std::string &key);
 
