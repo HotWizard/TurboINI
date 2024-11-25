@@ -407,7 +407,7 @@ const bool TurboINI::parser::ExistsInNamespace(const types &type, const std::str
         {
             if (type == types::INTEGER)
             {
-                for (const auto &j : i.GetIntegers())
+                for (const auto &j :i.GetIntegers())
                 {
                     if (j.GetKey() == key)
                         return true;

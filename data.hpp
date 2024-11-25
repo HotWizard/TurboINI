@@ -70,8 +70,8 @@ namespace TurboINI
             std::vector<string> &GetStrings() const;
 
           private:
-            std::shared_ptr<std::vector<integer>> integers;
-            std::shared_ptr<std::vector<string>> strings;
+            std::shared_ptr<std::vector<integer>> integers = std::make_shared<std::vector<integer>>();
+            std::shared_ptr<std::vector<string>> strings = std::make_shared<std::vector<string>>();
         };
     } // namespace DataTypes
 

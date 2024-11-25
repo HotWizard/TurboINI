@@ -2,6 +2,14 @@
 # TurboINI
 ### Примечания
 - Версия C++ >= 17.
+- [xmake](https://xmake.io/#/)
+### Построение и запуск тестовых программ
+```shell
+# Построение
+xmake && xmake build TurboINITest0
+# Запуск тестовой программы tests/0.cpp
+xmake run TurboINITest0
+```
 ### Документация
 Документацию можете посмотреть в файле [DOCUMENTATION.md](DOCUMENTATION.md)
 ### Пример кода C++, не требующий \"INI\" файла
