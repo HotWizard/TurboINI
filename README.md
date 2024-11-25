@@ -5,6 +5,7 @@
 - [xmake](https://xmake.io/#/)
 ### Построение и запуск тестовых программ
 ```shell
+# Построение и запуск tests/0.cpp и tests/1.cpp программ.
 xmake && xmake run 0 && xmake run 1
 ```
 ### Документация
